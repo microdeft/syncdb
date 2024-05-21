@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student App</title>
+</head>
+
+<body>
+    <h1>Student Details</h1>
+    <form id="studentForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age" required>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+    <ul id="studentList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/7.2.2/pouchdb.min.js"></script>
+    <script>
+        const db = new PouchDB('students');
+        const apiUrl = 'https://webhook-test.com/01f12d7018b04976a0a37942018b309e'; // Replace with your REST API URL
+
+        document.getElementById('studentForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+
+            await db.post({ name, age });
+            document.getElementById('studentForm').reset();
+            loadStudents();
+        });
+
+        async function loadStudents() {
+            const result = await db.allDocs({ include_docs: true });
+            const studentList = document.getElementById('studentList');
+            studentList.innerHTML = '';
+            result.rows.forEach(row => {
+                const li = document.createElement('li');
+                li.textContent = `Name: ${row.doc.name}, Age: ${row.doc.age}`;
+                studentList.appendChild(li);
+            });
+        }
+
+        async function syncToServer() {
+            const result = await db.allDocs({ include_docs: true });
+            result.rows.forEach(async (row) => {
+                const student = row.doc;
+                if (!student.synced) {
+                    try {
+                        await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(student)
+                        });
+                        student.synced = true;
+                        await db.put(student);
+
+                    } catch (error) {
+                        console.error('Sync error:', error);
+                    }
+                }
+            });
+        }
+        // Load students on page load
+        loadStudents();
+        // Periodically try to sync data to the server
+        setInterval(syncToServer, 5000); // Adjust the interval as needed
+    </script>
+</body>
+
+</html>

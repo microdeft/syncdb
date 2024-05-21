@@ -1,0 +1,20 @@
+{
+    "name": "syncdb-app",
+    "version": "1.0.0",
+    "description": "A Node.js app to manage student details with offline and online sync using PouchDB and a REST API",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "dependencies": {
+      "axios": "^0.27.2",
+      "body-parser": "^1.20.1",
+      "cors": "^2.8.5",
+      "express": "^4.18.2",
+      "pouchdb": "^7.2.2",
+      "pouchdb-find": "^7.2.2"
+    },
+    "author": "",
+    "license": "ISC"
+  }
+  
